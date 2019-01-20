@@ -1,0 +1,382 @@
+concrete Hungarian_collaborativeGrammarMagyar of Hungarian_collaborativeGrammar = 
+
+open Prelude in {
+
+flags coding = utf8 ;
+
+lincat
+    S = {s : Str};
+    NP = NounPhrase;
+    VP = {s : Agr => TTense => Str; r : Str};
+    V2 = {s : Obj => Agr => TTense => Str; c : Case};
+    V = Verb;
+    Det = {s : Str; o : Obj; n : Number};
+    CN = {s : Number => Case => Str};
+    N = Noun;
+    AP = {s : Number => Str};
+    AdA = Str;
+    Tense = {s : Str; t : TTense};
+    Pol = {s : Str; b : TPol};
+    Cl = {s : TPol => TTopic => TTense => Str};
+    A = {s : Number => Str};
+    Conj = {s : Str};
+    Topic = {s : Str; t : TTopic};
+
+lin
+    PredVP np vp = {s = table {
+       TPos => table {
+                 Subject => \\tense => np.s ! Nom ++ vp.s ! np.a ! tense ++ vp.r;
+                 Object => \\tense => vp.r ++ vp.s ! np.a ! tense ++ np.s ! Nom;
+                 None => \\tense => np.s ! Nom ++ vp.s ! np.a ! tense ++ vp.r
+               };
+       TNeg => table {
+                 Subject => \\tense => np.s ! Nom ++ "nem" ++ vp.s ! np.a ! tense;
+                 Object => \\tense => vp.r
+                                        ++ "nem" ++ vp.s ! np.a ! tense ++ np.s ! Nom;
+                 None => \\tense => np.s ! Nom
+                                      ++ "nem" ++ vp.s ! np.a ! tense ++ vp.r
+               }
+     }};
+    ComplV2 v2 np = {s = \\subj,tense => v2.s ! np.o ! subj ! tense; r = np.s ! v2.c};
+    love  = {s = table {
+       Def => table {
+                Ag Sg p1 => table {
+                              TPres => "szeretem";
+                              TPast => "szerettem"
+                            };
+                Ag Sg p2 => table {
+                              TPres => "szereted";
+                              TPast => "szeretted"
+                            };
+                Ag Sg p3 => table {
+                              TPres => "szereti";
+                              TPast => "szerette"
+                            };
+                Ag Pl p1 => table {
+                              TPres => "szeretjük";
+                              TPast => "szerettük"
+                            };
+                Ag Pl p2 => table {
+                              TPres => "szeretitek";
+                              TPast => "szerettétek"
+                            };
+                Ag Pl p3 => table {
+                              TPres => "szeretik";
+                              TPast => "szerették"
+                            }
+              };
+       Indef => table {
+                  Ag Sg p1 => table {
+                                TPres => "szeretek";
+                                TPast => "szerettem"
+                              };
+                  Ag Sg p2 => table {
+                                TPres => "szeretsz";
+                                TPast => "szerettél"
+                              };
+                  Ag Sg p3 => table {
+                                TPres => "szeret";
+                                TPast => "szeretett"
+                              };
+                  Ag Pl p1 => table {
+                                TPres => "szeretünk";
+                                TPast => "szerettünk"
+                              };
+                  Ag Pl p2 => table {
+                                TPres => "szerettek";
+                                TPast => "szerettetek"
+                              };
+                  Ag Pl p3 => table {
+                                TPres => "szeretnek";
+                                TPast => "szerettek"
+                              }
+                };
+       P2 => table {
+               Ag Sg p1 => table {
+                             TPres => "szeretlek";
+                             TPast => "szerettelek"
+                           };
+               Ag Sg p2 => table {
+                             TPres => "szereted";
+                             TPast => "szeretted"
+                           };
+               Ag Sg p3 => table {
+                             TPres => "szeret";
+                             TPast => "szeretett"
+                           };
+               Ag Pl p1 => table {
+                             TPres => "szeretünk";
+                             TPast => "szerettünk"
+                           };
+               Ag Pl p2 => table {
+                             TPres => "szerettek";
+                             TPast => "szerettetek"
+                           };
+               Ag Pl p3 => table {
+                             TPres => "szeretnek";
+                             TPast => "szerettek"
+                           }
+             }
+     };
+ c = Acc};
+    fall  = {s = table {
+       Ag Sg p1 => table {
+                     TPres => "esek";
+                     TPast => "estem"
+                   };
+       Ag Sg p2 => table {
+                     TPres => "esel";
+                     TPast => "estél"
+                   };
+       Ag Sg p3 => table {
+                     TPres => "esik";
+                     TPast => "esett"
+                   };
+       Ag Pl p1 => table {
+                     TPres => "esünk";
+                     TPast => "estünk"
+                   };
+       Ag Pl p2 => table {
+                     TPres => "estek";
+                     TPast => "estetek"
+                   };
+       Ag Pl p3 => table {
+                     TPres => "esnek";
+                     TPast => "estek"
+                   }
+     }};
+    UseV v = v ** {r = []};
+    UseN n = n;
+    DetCN det cn = {s = \\cs => det.s ++ cn.s ! det.n ! cs; o = det.o;
+ a = Ag det.n p3};
+    ModCN ap cn = {s = \\n,c => variants {ap.s ! Sg ++ cn.s ! n ! c; ap.s ! n}};
+    CompAP ap = {s = \\agr,tense => ap.s ! (agrFeatures agr).n ++ Be.s ! agr ! tense; r = []};
+    AdAP ada ap = {s = \\n => ada ++ ap.s ! n};
+    i_NP  = mkPro Sg p1;
+    he_NP  = mkPro Sg p3;
+    she_NP  = mkPro Sg p3;
+    we_NP  = mkPro Pl p1;
+    they_NP  = mkPro Pl p3;
+    Perf  = {s = []; t = TPast};
+    Pres  = {s = []; t = TPres};
+    Neg  = {s = []; b = TNeg};
+    Pos  = {s = []; b = TPos};
+    ProdropPredVP np vp = let np = {s = []; a = np.a} ;
+in {s = table {
+          TPos => table {
+                    Subject => \\tense => np.s ++ vp.s ! np.a ! tense;
+                    Object => \\tense => vp.r ++ vp.s ! np.a ! tense ++ np.s;
+                    None => \\tense => np.s ++ vp.s ! np.a ! tense
+                  };
+          TNeg => table {
+                    Subject => \\tense => "nem" ++ np.s ++ vp.s ! np.a ! tense;
+                    Object => \\tense => "nem" ++ vp.r ++ vp.s ! np.a ! tense ++ np.s;
+                    None => \\tense => np.s ++ "nem" ++ vp.s ! np.a ! tense ++ vp.r
+                  }
+        }};
+    you_NP  = mkPro Sg p2;
+    a_Det  = {s = "egy"; o = Indef; n = variants {Sg; Pl}};
+    the_Det  = {s = "a"; o = Def; n = Sg};
+    tejfol  = {s = table {
+       Sg => table {
+               Nom => "tejföl";
+               Acc => "tejfölt";
+               Dat => "tejfölnek";
+               Ins => "tejföllel";
+               Iness => "tejfölben";
+               Abl => "tejföltől"
+             };
+       Pl => table {
+               Nom => "tejfölök";
+               Acc => "tejfölöket";
+               Dat => "tejfölöknek";
+               Ins => "tejfölökkel";
+               Iness => "tejfölökben";
+               Abl => "tejfölöktől"
+             }
+     }};
+    every_Det  = {s = "minden"; o = Indef; n = Sg};
+    Jana  = {s = \\_ => table {
+              Nom => "Jana";
+              Acc => "Janát";
+              _ => "Jananana"
+            }};
+    Blue  = {s = table {
+       Sg => "kék";
+       Pl => "kékek"
+     }};
+    UseA a = a;
+    ConjS conj s1 s2 = {s = s1.s ++ conj.s ++ s2.s};
+    ConjNP conj np1 np2 = {s = \\cs => np1.s ! cs ++ conj.s ++ np2.s ! cs; a = np1.a;
+ o = np1.o};
+    and_Conj  = {s = "és"};
+    Be  = {s = table {
+       Ag Sg p1 => table {
+                     TPres => "vagyok";
+                     TPast => "voltam"
+                   };
+       Ag Sg p2 => table {
+                     TPres => "vagy";
+                     TPast => "voltál"
+                   };
+       Ag Sg p3 => table {
+                     TPres => [];
+                     TPast => "volt"
+                   };
+       Ag Pl p1 => table {
+                     TPres => "vagyunk";
+                     TPast => "voltunk"
+                   };
+       Ag Pl p2 => table {
+                     TPres => "vagytok";
+                     TPast => "voltatok"
+                   };
+       Ag Pl p3 => table {
+                     TPres => [];
+                     TPast => "voltak"
+                   }
+     }};
+    very_AdA  = "nagyon";
+    pepper  = regNoun "paprika";
+    beer  = regNoun "sör";
+    langos  = regNoun "lángos";
+    Sbjct  = {s = []; t = Subject};
+    Objct  = {s = []; t = Object};
+    Nne  = {s = []; t = None};
+    UseCl pol topic tense cl = {s = tense.s
+       ++ pol.s ++ topic.s ++ cl.s ! pol.b ! topic.t ! tense.t};
+
+param
+    Case = Nom | Acc | Dat | Iness | Ins | Abl;
+    Person = p1 | p2 | p3;
+    Obj = Def | Indef | P2;
+    Number = Sg | Pl;
+    Agr = Ag Number Person;
+    TTense = TPres | TPast;
+    TPol = TPos | TNeg;
+    TTopic = Subject | Object | None;
+
+oper
+    agrFeatures : Agr -> {n : Number; p : Person}  = \a -> case a of {
+           Ag n p => {n = n; p = p}
+         };
+    Noun : Type  = {s : Number => Case => Str};
+    NounPhrase : Type  = {s : Case => Str; a : Agr; o : Obj};
+    mkNoun : Str -> Str -> Str -> Str -> Str -> Str -> Str -> Str -> Str -> Str -> Str -> Str -> Noun  = \tejfol,tejfolt,tejfolnek,tejfolben,tejfollel,tejfoltol,tejfolok,tejfoloket,tejfoloknek,tejfolokben,tejfolokkel,tejfoloktol -> {s = table {
+                                                                                                                                         Sg => table {
+                                                                                                                                                 Nom => tejfol;
+                                                                                                                                                 Acc => tejfolt;
+                                                                                                                                                 Dat => tejfolnek;
+                                                                                                                                                 Iness => tejfolben;
+                                                                                                                                                 Ins => tejfollel;
+                                                                                                                                                 Abl => tejfoltol
+                                                                                                                                               };
+                                                                                                                                         Pl => table {
+                                                                                                                                                 Nom => tejfolok;
+                                                                                                                                                 Acc => tejfoloket;
+                                                                                                                                                 Dat => tejfoloknek;
+                                                                                                                                                 Iness => tejfolokben;
+                                                                                                                                                 Ins => tejfolokkel;
+                                                                                                                                                 Abl => tejfoloktol
+                                                                                                                                               }
+                                                                                                                                       }};
+    regNoun : Str -> Noun  = \langos -> let plural = langos + "ok" ;
+              in mkNoun langos (VHarm langos "t") (VHarm langos "nek") (VHarm langos "ben") (VHarm langos "vel") (VHarm langos "tol") plural (VHarm plural "t") (VHarm plural "nek") (VHarm plural "ben") (VHarm plural "vel") (VHarm plural "tol");
+    mkPro : Number -> Person -> NounPhrase  = \n,p -> case {p1 = n; p2 = p} of {
+             {p1 = Sg; p2 = p1} => {s = table {
+                                          Nom => "én";
+                                          Acc => "engem";
+                                          Dat => "nekem";
+                                          Iness => "velem";
+                                          Ins => "bennem";
+                                          Abl => "tőlem"
+                                        };
+                                    a = Ag n p; o = Indef};
+             {p1 = Sg; p2 = p2} => {s = table {
+                                          Nom => "te";
+                                          Acc => "téged";
+                                          Dat => "neked";
+                                          Iness => "veled";
+                                          Ins => "benned";
+                                          Abl => "tőled"
+                                        };
+                                    a = Ag n p; o = P2};
+             {p1 = Sg; p2 = p3} => {s = table {
+                                          Nom => "ő";
+                                          Acc => "őt";
+                                          Dat => "neki";
+                                          Iness => "vele";
+                                          Ins => "benne";
+                                          Abl => "tőle"
+                                        };
+                                    a = Ag n p; o = Def};
+             {p1 = Pl; p2 = p1} => {s = table {
+                                          Nom => "mi";
+                                          Acc => "minket";
+                                          Dat => "nekünk";
+                                          Iness => "velünk";
+                                          Ins => "bennünk";
+                                          Abl => "tőlünk"
+                                        };
+                                    a = Ag n p; o = Indef};
+             {p1 = Pl; p2 = p2} => {s = table {
+                                          Nom => "ti";
+                                          Acc => "titeket";
+                                          Dat => "nektek";
+                                          Iness => "veletek";
+                                          Ins => "bennetek";
+                                          Abl => "tőletek"
+                                        };
+                                    a = Ag n p; o = P2};
+             {p1 = Pl; p2 = p3} => {s = table {
+                                          Nom => "ők";
+                                          Acc => "őket";
+                                          Dat => "nekik";
+                                          Iness => "velük";
+                                          Ins => "bennük";
+                                          Abl => "tőlük"
+                                        };
+                                    a = Ag n p; o = Def}
+           };
+    mkVerb : Str -> Str -> Str -> Str -> Str -> Str -> Str -> Str -> Str -> Str -> Str -> Str -> Verb  = \hervadok,hervadtam,hervadsz,hervadtal,hervad,hervadt,hervadunk,hervadtunk,hervadtok,hervadtatok,hervadnak,hervadtak -> {s = table {
+                                                                                                                                  Ag Sg p1 => table {
+                                                                                                                                                TPres => hervadok;
+                                                                                                                                                TPast => hervadtam
+                                                                                                                                              };
+                                                                                                                                  Ag Sg p2 => table {
+                                                                                                                                                TPres => hervadsz;
+                                                                                                                                                TPast => hervadtal
+                                                                                                                                              };
+                                                                                                                                  Ag Sg p3 => table {
+                                                                                                                                                TPres => hervad;
+                                                                                                                                                TPast => hervadt
+                                                                                                                                              };
+                                                                                                                                  Ag Pl p1 => table {
+                                                                                                                                                TPres => hervadunk;
+                                                                                                                                                TPast => hervadtunk
+                                                                                                                                              };
+                                                                                                                                  Ag Pl p2 => table {
+                                                                                                                                                TPres => hervadtok;
+                                                                                                                                                TPast => hervadtatok
+                                                                                                                                              };
+                                                                                                                                  Ag Pl p3 => table {
+                                                                                                                                                TPres => hervadnak;
+                                                                                                                                                TPast => hervadtak
+                                                                                                                                              }
+                                                                                                                                }};
+    Verb : Type  = {s : Agr => TTense => Str};
+    back_vowel : pattern Str  = # ("a" | "á" | "u" | "ú" | "ó" | "o" | "u");
+    VHarm : Str -> Str -> Str  = \root,suffix -> case root of {
+                     pr + #back_vowel + pst => root + ChangeHarm suffix;
+                     _ => root + suffix
+                   };
+    ChangeHarm : Str -> Str  = \suffix -> case suffix of {
+                pr + ("a" | "o") + pst => pr + "e" + pst;
+                pr + ("á" | "ó") + pst => pr + "é" + pst;
+                _ => suffix
+              };
+    regVerb : Str -> Verb  = \hervad -> case hervad of {
+                _ => mkVerb hervad (hervad + "ok") (hervad + "tam") (hervad + "sz") (hervad + "tál") hervad (hervad + "t") (hervad + "unk") (hervad + "tunk") (hervad + "tok") (hervad + "tatok") (hervad + "nak") (hervad + "tak")
+              };
+
+}
